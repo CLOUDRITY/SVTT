@@ -4,8 +4,8 @@ date: 2018-08-31
 description: Tìm hiểu về cách sử dụng github cơ bản.
 ---
 ## Mục lục:
-* [1. Nội dung thực hiện trong tuần] (#1)
-* [2. Kết quả đạt được] (#2)
+* [1. Nội dung thực hiện trong tuần](#1)
+* [2. Kết quả đạt được](#2)
 ## Nội dung:
 <a name="1"></a>
 ### 1. Nội dung thực hiện trong tuần:
