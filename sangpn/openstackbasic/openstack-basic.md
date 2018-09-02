@@ -154,3 +154,37 @@ OpenStack là một phần mềm mã nguồn mở, dùng để triển khai Clou
 28. Nova-compute tạo dữ liệu cho hypervisor driver và thực thi yêu cầu tạo máy ảo trên Hypervisor (thông qua libvirt hoặc api).
 
 ## 2. Compute (Nova):
+2.1. Chức năng chính:
+	Nova hỗ trợ tạo các máy ảo, máy chủ từ xa và hỗ trợ giới hạn cho các container hệ thống.
+	Là phần chính của hệ thống IaaS. Nó được thiết kế để quản lý và tự động hóa các nhóm tài nguyên máy tính và có thể làm việc với các công nghệ ảo hóa rộng rãi, cũng như các cấu hình máy tính hiệu suất cao. KVM, VMware và Xen là những lựa chọn có sẵn cho công nghệ hypervisor…
+2.2. Các dịch vụ thành phần:
+![](https://docs.openstack.org/nova/queens/_images/architecture.svg)
+	Nova-api: là một RESTful API web service, nhận các yêu cầu HTTP, chuyển đổi các lệnh và giao tiếp với các thành phần khác thông qua hàng đợi oslo.messaging hoặc HTTP.
+	Nova-compute: quản lý giao tiếp với hypervisor và các máy ảo.
+	Nova-scheduler: Lấy một yêu cầu về máy ảo ở hàng đợi và quyết định máy chủ sẽ chạy nó.
+	Nova-conductor: cung cấp các dịch vụ cho nova-compute, là trung gian giữa nova-compute và dữ liệu.
+	Nova database: sql database cho lưu trữ dữ liệu.
+	Nova-network: quản lý chuyển tiếp IP, cầu nối và các VLAN.
+2.3. Tìm hiểu luồng quản lý máy ảo: tạo, xóa.
+3. Networking (Neutron):
+3.1. Chức năng chính:
+	Quản lý mạng và địa chỉ IP, đảm bảo mạng không bị nút cổ chai và đem đến cho người dùng khả năng tự phục vụ.
+	Cung cấp một framework mở rộng có thể triển khai và quản lý các dịch vụ mạng bổ sung — chẳng hạn như hệ thống phát hiện xâm nhập (IDS), cân bằng tải, tường lửa và mạng riêng ảo (VPN)…
+3.2. Các dịch vụ thành phần:
+![](https://docs.openstack.org/security-guide/_images/sdn-connections.png)
+	Neutron server (neutron-server và neutron-*-plugin): chạy trên các node mạng để phục vụ Networking API và các mở rộng của nó. Ngoài ra nó cũng thực thi các dịch vụ mạng và đánh địa chỉ IP cho mỗi port. Nó yêu cầu truy cập gián tiếp vào cơ sở dữ liệu liên tục. Điều này được thực hiện thông qua các plugin, giao tiếp với cơ sở dữ liệu bằng cách sử dụng giao thức AMPQ (Advanced Message Queuing Protocol).
+	Plugin agent (neutron-*-agent): Chạy trên mỗi compute node để quản lý cấu hình chuyển mạch ảo cục bộ (vswitch). Dịch vụ này yêu cầu truy cập hàng đợi tin nhắn và phụ thuộc vào plugin được sử dụng. Một số plugin như OpenDaylight (ODL) và Open Virtual Network (OVN) không yêu cầu bất kỳ tác nhân python nào trên các compute node.
+	DHCP agent (neutron-dhcp-agent): Cung cấp dịch vụ DHCP cho các tenant network. Tác nhân này giống nhau trên tất cả các plugin và chịu trách nhiệm duy trì cấu hình DHCP. Neutron-dhcp-agent yêu cầu truy cập hàng đợi thông báo. Tùy chọn tùy thuộc vào plugin.
+	L3 agent (neutron-l3-agent): Cung cấp chuyển tiếp L3 / NAT cho truy cập mạng bên ngoài của các máy ảo trên các mạng thuê. Yêu cầu quyền truy cập hàng đợi tin nhắn. Tùy chọn tùy thuộc vào plugin.
+	Network provider services (SDN server/services): Cung cấp các dịch vụ mạng bổ sung cho các mạng thuê. Các dịch vụ SDN này có thể tương tác với nơtron-máy chủ, trình cắm nơtron và các tác nhân bổ trợ thông qua các kênh truyền thông như API REST.
+3.3. Tìm hiểu, phân biệt về provider network, self service network:
+3.3.1. Provider network:
+	Cung cấp khả năng kết nối layer 2 đến các instance có hỗ trợ tùy chọn cho các dịch vụ DHCP và metadata. Các mạng này kết nối hoặc ánh xạ tới các mạng layer 2 hiện có trong trung tâm dữ liệu, thường sử dụng thẻ VLAN (802.1q) để xác định và tách chúng.
+	Thường cung cấp sự đơn giản, hiệu suất và độ tin cậy với chi phí linh hoạt. Chỉ quản trị viên mới có thể quản lý mạng của provider network vì họ yêu cầu cấu hình cơ sở hạ tầng mạng vật lý. Ngoài ra, provider network chỉ xử lý kết nối layer 2 cho các trường hợp, do đó thiếu hỗ trợ cho các tính năng như bộ định tuyến và địa chỉ IP nổi.
+	Nói chung, các thành phần phần mềm Mạng OpenStack xử lý các hoạt động layer 3 tác động đến hiệu suất và độ tin cậy cao nhất. Để cải thiện hiệu suất và độ tin cậy, các network provider di chuyển các hoạt động layer 3 đến cơ sở hạ tầng mạng vật lý.
+3.3.2. Self service network:
+	Self-service network chủ yếu cho phép các dự án chung (non-privileged) quản lý mạng mà không cần liên quan đến quản trị viên. Các mạng này hoàn toàn ảo và yêu cầu các bộ định tuyến ảo tương tác với nhà cung cấp và các mạng bên ngoài như Internet. Self-service network cũng thường cung cấp các dịch vụ DHCP và siêu dữ liệu cho các cá thể.
+	Sử dụng các giao thức VXLAN hoặc GRE.
+	Self-service network  IPv4 thường sử dụng các dải địa chỉ IP riêng (RFC1918) và tương tác với các mạng của nhà cung cấp thông qua NAT nguồn trên các bộ định tuyến ảo.
+
+
