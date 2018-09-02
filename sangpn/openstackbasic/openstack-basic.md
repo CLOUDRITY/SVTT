@@ -8,7 +8,7 @@
 
 -Thuật ngữ &quot;đám mây - Cloud&quot; ở đây là lối nói ẩn dụ chỉ mạng Internet (dựa vào cách được bố trí của nó trong sơ đồ mạng máy tính) và như một liên tưởng về độ phức tạp của các cơ sở hạ tầng chứa trong nó.
 
- ![](https://upload.wikimedia.org/wikipedia/commons/b/b5/Cloud_computing.svg =100x50)
+ ![](https://upload.wikimedia.org/wikipedia/commons/b/b5/Cloud_computing.svg)
 
 ## 2. Phân loại Cloud:
 
