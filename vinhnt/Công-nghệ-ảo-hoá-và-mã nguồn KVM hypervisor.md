@@ -102,7 +102,7 @@ Vì được coi như 1 tiến trình xử lý của Linux nên nó tận dụng
 
 ### 2.3 Cấu trúc ảo hoá KVM kết hợp QEMU
 
-![](./Image/W1-Cấu-trúc-KVM-QEMU.png)
+<center>![](./Image/W1-Cấu-trúc-KVM-QEMU.png)</center>
 
 Trong đó:
 - **User-facing tools:** Là công cụ quán lý máy ảo hỗ trợ KVM. Các công cụ có giao diện đồ hoạ (như virt-manager) hoặc giao diện dòng lệnh như (virsh) và virt-tool (các công cụ này được quản lý bởi thư viện libvirt)
