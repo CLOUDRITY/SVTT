@@ -5,13 +5,13 @@ date: 2018-09-02
 
 ## Mục lục
 
-[1. Tổng quan về ảo hoá](#1)
-[2. Ảo hoá KVM - Kernel-Based Virtual Machine](#2)
-	[2.1 Một số đặt điểm của KVM](#21)
-	[2.2 Các tính năng của hệ thống ảo hoá KVM](#22)
-	[2.3 Cấu trúc ảo hoá KVM kết hợp QEMU](#23)
-	[2.4 Cài đặt KVM](#24)
-	[2.5 Cấu hình](#25)
+- [1. Tổng quan về ảo hoá](#1)
+- [2. Ảo hoá KVM - Kernel-Based Virtual Machine](#2)
+	- [2.1 Một số đặt điểm của KVM](#21)
+	- [2.2 Các tính năng của hệ thống ảo hoá KVM](#22)
+	- [2.3 Cấu trúc ảo hoá KVM kết hợp QEMU](#23)
+	- [2.4 Cài đặt KVM](#24)
+	- [2.5 Cấu hình](#25)
 
 ## Nội dung
 
@@ -121,7 +121,7 @@ Trong đó:
 ```
 lsmod | grep kvm
 ```
-![ảnh](/Image/W1-kiểm-tra-KVM.)
+![ảnh](./Image/W1-kiem-tra.png)
 
 - Sau khi kiểm tra hệ thống hỗ trợ ảo hoá KVM, tiến hành cài đặt các gói phần mêm để hỗ trợ ảo hoá và quản lý các máy ảo KVM/QEMU:
 
@@ -149,3 +149,7 @@ virsh -c qemu:///system list
 ```
 
 ![ảnh](/W1-thanh-cong)
+
+## Tham khảo
+- [1.https://github.com/hocchudong/thuctap012017/blob/master/TamNT/Virtualization/docs/KVM/1.Tim_hieu_KVM.md](https://github.com/hocchudong/thuctap012017/blob/master/TamNT/Virtualization/docs/KVM/1.Tim_hieu_KVM.md)
+- [2.http://blogit.edu.vn/gioi-thieu-ao-hoa-va-ao-hoa-ma-nguon-kvm-hypervisor/](http://blogit.edu.vn/gioi-thieu-ao-hoa-va-ao-hoa-ma-nguon-kvm-hypervisor/)
