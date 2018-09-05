@@ -202,5 +202,55 @@ OpenStack là một phần mềm mã nguồn mở, dùng để triển khai Clou
 -	Self-service network chủ yếu cho phép các dự án chung (non-privileged) quản lý mạng mà không cần liên quan đến quản trị viên. Các mạng này hoàn toàn ảo và yêu cầu các bộ định tuyến ảo tương tác với nhà cung cấp và các mạng bên ngoài như Internet. Self-service network cũng thường cung cấp các dịch vụ DHCP và siêu dữ liệu cho các cá thể.
 -	Sử dụng các giao thức VXLAN hoặc GRE.
 -	Self-service network  IPv4 thường sử dụng các dải địa chỉ IP riêng (RFC1918) và tương tác với các mạng của nhà cung cấp thông qua NAT nguồn trên các bộ định tuyến ảo.
+## 4. Block storage (Cinder):
+### 4.1. Chức năng chính:
+-	Cung cấp các thiết bị lưu trữ khối (Block Storage) để sử dụng cùng với khối Compute, dùng để lưu trữ cơ sở dữ liệu, hệ thống tệp có thể mở rộng…
+-	Ảo hóa việc quản lý các thiết bị lưu trữ khối và cung cấp cho người dùng cuối API tự phục vụ để yêu cầu và tiêu thụ các tài nguyên đó mà không yêu cầu bất kỳ kiến thức nào về nơi lưu trữ của họ thực sự được triển khai hoặc trên loại thiết bị nào.
+- Quản lý việc tạo, gắn và tách các thiết bị khối với các máy chủ. Block Storage Volume được tích hợp đầy đủ vào Compute và Dashboard cho phép người dùng đám mây quản lý nhu cầu lưu trữ của riêng họ.
+### 4.2. Các dịch vụ thành phần:
+![](https://varchitectthoughts.files.wordpress.com/2013/11/screen-shot-2013-11-18-at-11-00-24-am.png)
+- Cinder-api: Nhận API request và định tuyến chúng đến cinder-volume để hành động.
+-	Cinder-volume: Tương tác trực tiếp với dịch vụ Lưu trữ khối và các tiến trình như cinder-scheduler. Nó cũng tương tác với các tiến trình này thông qua một hàng đợi thông báo (message queue). Cinder-volume  phản hồi các yêu cầu đọc và ghi được gửi tới Block Storage để duy trì trạng thái. Nó có thể tương tác với nhiều backup storage provider thông qua trình điều khiển.
+-	Cinder-scheduler: Dựa trên request được điều hướng tới, cinder-scheduler chuyển request tới Cinder Volume Service thông qua giao thức AMQP (Advanced Message Queue Protocol). Cinder-scheduler chọn nơi cung cấp bộ nhớ tối ưu để tạo volume. Nó tương tự như nova-scheduler.
+-	 Cinder-backup: cung cấp khả năng sao lưu cho bất kỳ loại nào cho backup storage provider.
+-	Messaging queue: chuyển tiếp thông tin giữa các tiến trình trong block storage.
+### 4.3. Tìm hiểu luồng tạo volume, gắn volume vào VM:
+#### 4.3.1. Luồng tạo Volume:
+![]( https://netapp.github.io/openstack-deploy-ops-guide/liberty/content/figures/3/a/images/cinder_create_volume_process.png)
+1.	Client yêu cầu tạo volume thông qua việc gọi REST API.
+2.	Cinder-api xác nhận yêu cầu, thông tin người dùng. Khi đã được xác thực, đưa thông báo lên hàng đợi AMPQ để xử lý.
+3.	Cinder-volume lấy thông báo từ hàng đợi và gửi đến Cinder-scheduler để xác định backend cho việc cung cấp volume.
+4.	Cinder-scheduler  lấy thông báo khỏi hàng đợi, tạo danh sách thích hợp dựa trên trạng thái hiện tại và yêu cầu volume (kích thước, loại volume…).
+5.	Cinder-volume đọc thông tin phản hồi từ Cinder-scheduler, lặp lại danh sách ứng viên bằng việc gọi các phương thức backend driver cho đến khi thành công.
+6.	Trình điều khiển NetApp Cinder tạo ra volume yêu cầu thông qua các tương tác với hệ thống con lưu trữ (phụ thuộc vào cấu hình và giao thức).
+7.	Cinder-volume tập hợp volume metadata từ hàng đợi, kết nối thông tin và chuyển message trả lời đến hàng đợi AMQP.
+8.	Cinder-api đọc thông tin phản hồi từ hàng đợi và trả lời client.
+9.	Client nhận được thông tin bao gồm trạng thái của yêu cầu tạo volume: volume UUID, etc.
+#### 4.3.2. Luồng gắn volume vào VM:
+![]( https://netapp.github.io/openstack-deploy-ops-guide/liberty/content/figures/3/a/images/nova_volume_attach_process.png)
+1.	Client yêu cầu gắn volume qua việc gọi Nova REST API.
+2.	Nova-api xử lý yêu cầu chứng thực, thông tin người dùng. Khi đã xác nhận là hợp lệ, gọi REST API để lấy thông tin về volume cụ thể.
+3.	Cinder-api xác nhận yêu cầu, thông tin người dùng. Khi đã xác thực, gửi thông điệp đến trình quản lý volume qua AMPQ.
+4.	Cinder-volume đọc thông điệp từ hàng đợi, gọi trình điều khiển Cinder tương ứng với volume được đính kèm.
+5.	Trình điều khiển NetApp Cinder chuẩn bị volume Cinder để chuẩn bị cho việc đính kèm (các bước cụ thể phụ thuộc vào giao thức lưu trữ được sử dụng)
+6.	Cinder-volume gửi thông tin phản hồi đến cinder-api qua hàng đợi AMPQ.
+7.	Cinder-api đọc thông tin phản hồi từ cinder-volume từ hàng đợi, chuyển thông tin kết nối trong RESTful response đến Nova caller.
+8.	Nova tạo kết nối tới kho lưu trữ với thông tin được trả về từ Cinder.
+9.	Nova chuyển thiết bị/tập tin volume đến hypervisor, nơi thực hiện việc gắn volume vào máy ảo.
+## 5. Image (Glance):
+### 5.1. Chức năng chính:
+-	Cho phép người dùng khám phá, đăng ký và truy xuất các VM image. 
+-	Cung cấp API REST cho phép ta truy vấn VM image metadata và truy xuất một image thực tế.
+## 5.2. Các dịch vụ thành phần:
+![]( http://www.sparkmycloud.com/blog/wp-content/uploads/2016/01/Untitled-drawing2.png)
+-	Glance-api: Nhận REST call cho việc tìm kiếm, tiếp nhận và lưu trữ các image.
+-	Glance-registry: lưu trữ, thực thi và thu thập metadata về các image.
+-	Database: là cơ sở dữ liệu lưu trữ image metadata.
+-	Storage repository: tích hợp với các thành phần OpenStack khác nhau bên ngoài như hệ thống tệp thông thường, Amazon S3 và HTTP cho kho lưu trữ hình ảnh…
+### 5.3. Luồng tạo Images:
+## 6. Dashboard (Horizon):
+### 6.1. Chức năng chính:
+-	Cung cấp cho quản trị viên và người dùng một giao diện đồ họa dựa trên web để truy cập, cung cấp và tự động triển khai các tài nguyên dựa trên đám mây.
+### 6.2. Các dịch vụ thành phần:
 
 
