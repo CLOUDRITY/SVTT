@@ -1,5 +1,3 @@
-# MỤC LỤC:
-[I. TÌM HIỂU CƠ BẢN VỀ CLOUD:](# I. TÌM HIỂU CƠ BẢN VỀ CLOUD:)
 # I. TÌM HIỂU CƠ BẢN VỀ CLOUD:
 
 ## 1. Khái niệm về Cloud:
